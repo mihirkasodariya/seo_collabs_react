@@ -14,6 +14,7 @@ import { useOutletContext } from "react-router-dom";
 interface LayoutContext {
   setPageTitle: (title: string) => void;
 }
+
 export function Chat() {
   const { setPageTitle } = useOutletContext<LayoutContext>();
   const [selectedChat, setSelectedChat] = useState<string | null>(null);
@@ -25,6 +26,42 @@ export function Chat() {
   const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
   const userId = localStorage.getItem("userId") || "";
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
+
+  // FORMAT TIME — WhatsApp style
+  const formatTime = (iso: string) => {
+    const d = new Date(iso);
+    let hrs = d.getHours();
+    const mins = d.getMinutes().toString().padStart(2, "0");
+    const ampm = hrs >= 12 ? "PM" : "AM";
+    hrs = hrs % 12 || 12;
+    return `${hrs}:${mins} ${ampm}`;
+  };
+
+  // DATE DIVIDER LABEL (Today / Yesterday / 14 Nov 2025)
+  const formatDayLabel = (iso: string) => {
+    const date = new Date(iso);
+    const today = new Date();
+    const yesterday = new Date();
+    yesterday.setDate(today.getDate() - 1);
+
+    const day = date.toDateString();
+    if (day === today.toDateString()) return "Today";
+    if (day === yesterday.toDateString()) return "Yesterday";
+
+    return date.toLocaleDateString("en-US", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  };
+
+  const isNewDay = (current: string, previous?: string) => {
+    if (!previous) return true;
+    return (
+      new Date(current).toDateString() !==
+      new Date(previous).toDateString()
+    );
+  };
 
   // Load chat users
   useEffect(() => {
@@ -49,7 +86,8 @@ export function Chat() {
         setMessages(res.data || []);
         setUnreadCounts((prev) => ({ ...prev, [selectedChat]: 0 }));
         const socket = getSocket();
-        if (socket) socket.emit("markSeen", { userId, partnerId: selectedChat });
+        if (socket)
+          socket.emit("markSeen", { userId, partnerId: selectedChat });
       } catch (err) {
         console.error("❌ Error loading messages:", err);
       } finally {
@@ -77,7 +115,10 @@ export function Chat() {
     });
 
     socket.on("messageSent", (msg) => {
-      if (msg.receiverId === selectedChat || msg.senderId === selectedChat) {
+      if (
+        msg.receiverId === selectedChat ||
+        msg.senderId === selectedChat
+      ) {
         setMessages((prev) => [...prev, msg]);
       }
     });
@@ -85,7 +126,9 @@ export function Chat() {
     socket.on("messageSeen", ({ userId: seenBy, partnerId }) => {
       if (partnerId === userId && selectedChat === seenBy) {
         setMessages((prev) =>
-          prev.map((m) => (m.senderId === userId ? { ...m, seen: true } : m))
+          prev.map((m) =>
+            m.senderId === userId ? { ...m, seen: true } : m
+          )
         );
       }
     });
@@ -101,6 +144,7 @@ export function Chat() {
   // Send message
   const handleSend = () => {
     if ((!newMessage.trim() && !selectedFile) || !selectedChat) return;
+
     const socket = getSocket();
     if (!socket) return;
 
@@ -121,7 +165,7 @@ export function Chat() {
     setSelectedFile(null);
   };
 
-  // Auto-scroll
+  // Auto scroll
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
@@ -137,6 +181,7 @@ export function Chat() {
   useEffect(() => {
     setPageTitle("Message");
   }, []);
+
   return (
     <div className="flex flex-col md:flex-row h-[88vh] rounded-xl overflow-hidden bg-white border border-teal-700 shadow-lg">
       {/* LEFT SIDEBAR */}
@@ -150,11 +195,11 @@ export function Chat() {
           </button>
         </div>
 
-        <div className="relative p-3 shrink-0  border-b border-teal-600">
+        <div className="relative p-3 shrink-0 border-b border-teal-600">
           <input
             type="text"
             placeholder="Search..."
-            className="w-full border border-teal-600 rounded-md pl-9 pr-3 py-2 text-sm md:text-xs lg:text-sm focus:ring-2 focus:ring-teal-600 outline-none"
+            className="w-full border border-teal-600 rounded-md pl-9 pr-3 py-2 text-sm focus:ring-2 focus:ring-teal-600 outline-none"
           />
           <Search
             size={16}
@@ -165,7 +210,7 @@ export function Chat() {
         {/* Chat List */}
         <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300">
           {chats.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full  text-gray-400 text-sm">
+            <div className="flex flex-col items-center justify-center h-full text-gray-400 text-sm">
               <MessageCircle className="mb-2" size={30} />
               <p>No chats yet</p>
             </div>
@@ -199,6 +244,7 @@ export function Chat() {
                       </p>
                     </div>
                   </div>
+
                   {unread > 0 && (
                     <div className="bg-teal-600 text-white text-xs font-semibold px-2 py-1 rounded-full">
                       {unread}
@@ -222,71 +268,102 @@ export function Chat() {
                 alt={selectedUser?.name}
                 className="w-10 h-10 md:w-8 md:h-8 rounded-full object-cover border border-teal-600"
               />
-              <h2 className="font-semibold text-gray-800 text-sm md:text-xs lg:text-sm">
+              <h2 className="font-semibold text-gray-800 text-sm">
                 {selectedUser?.name}
               </h2>
             </div>
 
             {/* Messages */}
-            {/* <div className="flex-1 overflow-y-auto p-4 space-y-3 scrollbar-thin scrollbar-thumb-gray-300"> */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-3 scrollbar-none">
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-none">
 
               {loading ? (
                 <p className="text-center text-gray-400 text-sm">
                   Loading messages...
                 </p>
               ) : messages.length > 0 ? (
-                messages.map((msg, idx) => (
-                  <div
-                    key={idx}
-                    className={`flex ${msg.senderId === userId
-                      ? "justify-end"
-                      : "justify-start pr-2"
-                      }`}
-                  >
-                    <div
-                      className={`relative px-7 py-2 max-w-[75%] wrap-break-word rounded-2xl shadow-md ${msg.senderId === userId
-                        ? "bg-teal-600 text-white rounded-br-none"
-                        : "bg-gray-100 text-gray-800 rounded-bl-none"
-                        }`}
-                    >
-                      {msg.fileUrl ? (
-                        msg.fileType?.startsWith("image/") ? (
-                          <img
-                            src={msg.fileUrl}
-                            alt="sent"
-                            className="w-40 h-40 md:w-32 md:h-32 object-cover rounded-lg"
-                          />
-                        ) : (
-                          <a
-                            href={msg.fileUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className={`underline text-sm ${msg.senderId === userId ? "text-blue-200" : "text-blue-600"} wrap-break-word`}
-                          >
-                            {msg.fileName}
-                          </a>
-                        )
-                      ) : (
-                        <p className="text-sm leading-relaxed wrap-break-word">{msg.message}</p>
+                messages.map((msg, index) => {
+                  const showDateDivider = isNewDay(
+                    msg.createdAt,
+                    messages[index - 1]?.createdAt
+                  );
+
+                  return (
+                    <div key={index}>
+
+                      {/* DATE DIVIDER */}
+                      {showDateDivider && (
+                        <div className="flex justify-center my-2">
+                          <span className="text-xs bg-auto border border-teal-600 text-gray-900 px-3 py-1 rounded-full">
+                            {formatDayLabel(msg.createdAt)}
+                          </span>
+                        </div>
                       )}
 
-                      {msg.senderId === userId && (
-                        <span className="absolute bottom-1 right-1">
-                          <Check
-                            size={16}
-                            className={`${msg.seen ? "text-blue-300" : "text-[#2e3233]"}`}
-                          />
-                        </span>
-                      )}
+                      {/* MESSAGE BUBBLE */}
+                      <div
+                        className={`flex ${msg.senderId === userId
+                            ? "justify-end mr-3"   
+                            : "justify-start ml-3 pr-2"
+                          }`}
+                      >
+
+
+                        <div
+                          className={`relative px-7 pb-5 pt-2 max-w-[75%] rounded-2xl shadow-md ${msg.senderId === userId
+                            ? "bg-teal-600 text-white rounded-br-none"
+                            : "bg-gray-100 text-gray-800 rounded-bl-none"
+                            }`}
+                        >
+                          {/* TEXT OR FILE */}
+                          {msg.fileUrl ? (
+                            msg.fileType?.startsWith("image/") ? (
+                              <img
+                                src={msg.fileUrl}
+                                alt="sent"
+                                className="w-40 h-40 md:w-32 md:h-32 object-cover rounded-lg"
+                              />
+                            ) : (
+                              <a
+                                href={msg.fileUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className={`underline text-sm ${msg.senderId === userId
+                                  ? "text-blue-200"
+                                  : "text-blue-600"
+                                  }`}
+                              >
+                                {msg.fileName}
+                              </a>
+                            )
+                          ) : (
+                            <p className="text-sm leading-relaxed">
+                              {msg.message}
+                            </p>
+                          )}
+
+                          {/* TIME + SEEN */}
+                          <div className="absolute bottom-1 right-2 flex items-center gap-1 text-[10px] opacity-80">
+                            <span>{formatTime(msg.createdAt)}</span>
+
+                            {msg.senderId === userId && (
+                              <Check
+                                size={14}
+                                className={msg.seen ? "text-blue-300" : "text-gray-400"}
+                              />
+                            )}
+                          </div>
+
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                ))
+                  );
+                })
               ) : (
                 <p className="text-center text-gray-400 text-sm">
                   No messages yet.
                 </p>
               )}
+
               <div ref={messagesEndRef}></div>
             </div>
 
@@ -295,24 +372,28 @@ export function Chat() {
               <label className="cursor-pointer">
                 <Paperclip
                   size={20}
-                  className="text-teal-800 hover:text-teal-700 transition"
+                  className="text-teal-800 hover:text-teal-700"
                 />
                 <input
                   type="file"
                   className="hidden"
                   onChange={(e) =>
-                    setSelectedFile(e.target.files ? e.target.files[0] : null)
+                    setSelectedFile(
+                      e.target.files ? e.target.files[0] : null
+                    )
                   }
                 />
               </label>
+
               <input
                 type="text"
                 placeholder="Type a message..."
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSend()}
-                className="flex-1 border border-teal-600 rounded-full px-4 py-2 text-sm md:text-xs lg:text-sm focus:ring-1 focus:ring-teal-600 outline-none"
+                className="flex-1 border border-teal-600 rounded-full px-4 py-2 text-sm focus:ring-1 focus:ring-teal-600 outline-none"
               />
+
               <button
                 onClick={handleSend}
                 className="bg-teal-600 text-white px-4 py-2 rounded-full hover:bg-teal-700 flex items-center gap-1 transition"
@@ -323,17 +404,19 @@ export function Chat() {
           </>
         ) : (
           <div className="flex flex-col items-center justify-center h-full text-gray-500 p-5 text-center">
-            <MessageCircle size={50} className="mb-3 text-teal-700" />
-            <p className="font-medium text-lg md:text-base lg:text-lg">
+            <MessageCircle
+              size={50}
+              className="mb-3 text-teal-700"
+            />
+            <p className="font-medium text-lg">
               Select a chat to start messaging
             </p>
-            <p className="text-sm mt-1 md:text-xs lg:text-sm">
+            <p className="text-sm mt-1">
               Or, start a new conversation from the sidebar.
             </p>
           </div>
         )}
       </div>
     </div>
-
   );
 }

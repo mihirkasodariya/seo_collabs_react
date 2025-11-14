@@ -19,11 +19,18 @@ export const addWebsite = async (data: WebsiteData) => {
     return response.data;
 };
 
-// LIST
-export const getWebsiteList = async () => {
+// LIST (WITH PAGINATION)
+export const getWebsiteList = async ({
+    page,
+    limit,
+}: {
+    page: number;
+    limit: number;
+}) => {
     const token = localStorage.getItem("token");
     const response = await api.get(`/website/getWebsiteList`, {
         headers: { Authorization: token },
+        params: { page, limit }, // 👍 send pagination params
     });
     return response.data;
 };

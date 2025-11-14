@@ -1,6 +1,18 @@
 import { Mail, Search, MessageCircle, Phone, FileText, HelpCircle, Clock, Globe, Book } from "lucide-react";
+import { useEffect } from "react";
+import { useOutletContext } from "react-router-dom";
+
+interface LayoutContext {
+    setPageTitle: (title: string) => void;
+}
 
 export const Support = () => {
+    const { setPageTitle } = useOutletContext<LayoutContext>();
+
+    useEffect(() => {
+        setPageTitle("Support");
+    }, []);
+
     const phoneNumber = "+911234567890"; // Replace with your support number
 
     const handleClick = () => {

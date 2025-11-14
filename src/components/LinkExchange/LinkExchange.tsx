@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import { getLinkExchangeList, type WebsiteData } from "../../api/linkExchange/linkExchange";
 import { connectSocket } from "../../api/socket";
+import toast from "react-hot-toast";
 
 interface LayoutContext {
     setPageTitle: (title: string) => void;
@@ -71,6 +72,11 @@ export function LinkExchange() {
 
     // ---------------- SEND MESSAGE VIA SOCKET ----------------
     const handleRequestExchange = (websiteId: string, ownerId: string, websiteUrl: string) => {
+
+        if (ownerId === currentUserId) {
+            toast.error("You can’t exchange links with your own website because you are its owner.");
+            return;
+        }
         if (!socketInstance) {
             socketInstance = connectSocket(currentUserId);
 
@@ -113,7 +119,7 @@ export function LinkExchange() {
 
     // ---------------- UI ----------------
     return (
-        <div className="mx-auto flex flex-col px-4 md:px-0 max-w-7xl">
+        <div className="mx-auto flex flex-col px-4 md:px-0 max-w-8xl">
             {/* Header */}
             {/* Header */}
             <div className="flex flex-row flex-wrap items-center justify-between gap-2 mb-4 md:mb-6">
