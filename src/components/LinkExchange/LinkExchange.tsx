@@ -203,7 +203,7 @@ export function LinkExchange() {
                         return (
                             <div
                                 key={websiteId}
-                                className="border border-[#077a7d] rounded-lg p-4 flex flex-col md:flex-row justify-between items-start md:items-center hover:shadow-lg transition"
+                                className="border border-[#077a7d] rounded-lg p-4 flex flex-col md:flex-row justify-between items-start md:items-center hover:shadow-lg hover:shadow-teal-100 transition"
                             >
                                 <div className="flex-1 w-full md:w-auto">
                                     <a

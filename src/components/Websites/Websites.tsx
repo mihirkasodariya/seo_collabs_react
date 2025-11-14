@@ -179,10 +179,10 @@ export function Websites() {
                             item.url && item.url.length > 36 ? item.url.substring(0, 36) + "..." : item.url;
 
                         return (
-                            <div key={item._id ?? index} className="border border-teal-700 rounded-xl p-3 md:p-5 bg-white shadow-sm flex flex-col">
+                            <div key={item._id ?? index} className="border border-teal-700 rounded-xl p-3 md:p-5 bg-white shadow-sm flex flex-col hover:shadow-lg hover:shadow-teal-100">
 
                                 <div className="flex items-start justify-between mb-2 md:mb-3">
-                                    <a
+                                    <a 
                                         href={item.url}
                                         target="_blank"
                                         rel="noreferrer noopener"
@@ -215,13 +215,35 @@ export function Websites() {
                                     <span className="font-semibold">Requirements:</span> {item.linkReqs || "-"}
                                 </p>
 
-                                <label className="flex items-center gap-3 mt-auto cursor-pointer">
-                                    <input type="checkbox" checked={!!item.isLinkExchange} onChange={() => handleToggle(item)} className="sr-only peer" />
-                                    <div className="w-10 h-5 bg-gray-300 rounded-full peer-checked:bg-teal-700 relative">
-                                        <div className="absolute left-1 top-1 w-3.5 h-3.5 bg-white rounded-full transition-all peer-checked:translate-x-4"></div>
+                                <label className="flex items-center gap-3 mt-auto cursor-pointer select-none">
+
+                                    <input
+                                        type="checkbox"
+                                        checked={!!item.isLinkExchange}
+                                        onChange={() => handleToggle(item)}
+                                        className="sr-only"
+                                    />
+
+                                    {/* Toggle Track */}
+                                    <div
+                                        className={`
+      w-12 h-6 rounded-full relative transition-colors duration-300
+      ${item.isLinkExchange ? "bg-teal-700" : "bg-gray-300"}
+    `}
+                                    >
+                                        {/* Sliding Circle */}
+                                        <div
+                                            className={`
+        absolute top-0.5 w-5 h-5 bg-white rounded-full shadow-sm 
+        transition-all duration-300
+        ${item.isLinkExchange ? "left-0.5" : "left-[29px]"}
+      `}
+                                        ></div>
                                     </div>
+
                                     <span className="text-xs md:text-sm font-medium">Link Exchange Enabled</span>
                                 </label>
+
                             </div>
                         );
                     })}
@@ -307,7 +329,15 @@ export function Websites() {
 
                             <div>
                                 <label className="text-sm font-medium">Categories</label>
-                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-52 overflow-y-auto border p-2 rounded">
+
+                                <div
+                                    className="
+            grid grid-cols-2 sm:grid-cols-3 gap-2 
+            max-h-40 overflow-y-auto          /* mobile scroll */
+            md:max-h-none md:overflow-visible /* laptop no-scroll */
+            border p-2 rounded
+        "
+                                >
                                     {categoriesList.map((c, i) => (
                                         <label key={i} className="flex items-center gap-2 text-sm">
                                             <input

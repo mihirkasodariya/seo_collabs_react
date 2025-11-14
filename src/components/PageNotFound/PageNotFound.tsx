@@ -21,7 +21,7 @@ export function NotFound() {
   };
 
   return (
-    <div className="relative flex items-center justify-center min-h-screen overflow-hidden bg-gradient-to-br from-[#e6fffa] via-[#ecfeff] to-[#f0fdfa] text-[#0f172a] p-4 sm:p-6 md:p-10">
+    <div className="relative flex items-center justify-center min-h-screen overflow-hidden bg-linear-to-br from-[#e6fffa] via-[#ecfeff] to-[#f0fdfa] text-[#0f172a] p-4 sm:p-6 md:p-10">
       {/* Floating background orbs */}
       <motion.div
         className="absolute top-20 left-10 w-56 h-56 sm:w-72 sm:h-72 bg-[#a7f3d0]/40 rounded-full blur-3xl"
@@ -74,13 +74,13 @@ export function NotFound() {
           transition={{ duration: 0.6 }}
           className="mt-4"
         >
-          <h1 className="text-[2.5rem] sm:text-[4rem] md:text-[6rem] font-extrabold tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-[#077a7d] to-[#0ea5e9] drop-shadow-[0_0_10px_rgba(7,122,125,0.3)] leading-none">
+          <h1 className="text-[2.5rem] sm:text-[4rem] md:text-[6rem] font-extrabold tracking-wider text-transparent bg-clip-text bg-linear-to-r from-[#077a7d] to-[#0ea5e9] drop-shadow-[0_0_10px_rgba(7,122,125,0.3)] leading-none">
             {show404 ? "404" : "Not Found"}
           </h1>
         </motion.div>
 
         {/* Subtitle Text */}
-        <motion.p
+        <motion.p 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
@@ -88,7 +88,7 @@ export function NotFound() {
         >
           Oops, looks like something broke for a moment!
           <br className="hidden sm:block" />
-          Our team’s fixing it — hang tight or give the page a quick refresh.
+          Our team’s fixing it - hang tight or give the page a quick refresh.
         </motion.p>
 
         {/* Buttons Section */}
